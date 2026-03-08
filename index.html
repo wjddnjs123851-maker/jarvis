@@ -216,12 +216,12 @@ async function handleParse() {
 async function parseWithClaude(text) {
   const res = await fetch(CLAUDE_API, {
     method: "POST",
-headers: { 
-  "Content-Type": "application/json",
-  "x-api-key": "여기에_API키_입력",
-  "anthropic-version": "2023-06-01",
-  "anthropic-dangerous-direct-browser-access": "true"
-},
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": "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",
+      "anthropic-version": "2023-06-01",
+      "anthropic-dangerous-direct-browser-access": "true"
+    },
     body: JSON.stringify({
       model: "claude-sonnet-4-20250514",
       max_tokens: 300,
