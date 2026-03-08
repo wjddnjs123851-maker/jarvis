@@ -163,6 +163,7 @@ const TYPE_META = {
   inventory_add: { icon: "🛒", label: "식재료 추가" },
   inventory_use: { icon: "🍳", label: "식재료 소비" },
   pharmacy_use: { icon: "💊", label: "약품 복용" },
+  health_log: { icon: "🥗", label: "식단 기록" },
 };
 
 let currentParsed = null;
@@ -220,15 +221,32 @@ async function parseWithClaude(text) {
       model: "claude-sonnet-4-20250514",
       max_tokens: 300,
       system: `가계부 입력 파서. 자연어를 JSON으로 변환. 오늘: ${todayStr}
-type: "log"(지출/수입), "inventory_add"(식재료추가), "inventory_use"(식재료소비), "pharmacy_use"(약복용)
+type: "log"(지출/수입), "inventory_add"(식재료추가), "inventory_use"(식재료소비), "pharmacy_use"(약복용), "health_log"(식단기록)
 log면: date, category(지출/수입), subcategory(식비/주거/교통/구독/생활용품/건강/보험/통신/문화/금융/급여/기타), content, amount(숫자만), method(하나카드/우리카드/현대카드/국민카드/계좌이체/현금, 언급없으면 하나카드)
+inventory_add면: name, amount(용량/개수), expiry(yyyy-MM-dd), count(개수없으면 "-")
+health_log면: date, name(음식명), amount(섭취량), calories(kcal), carbs(g), protein(g), fat(g), sodium(mg), cholesterol(mg), sat_fat(g), fiber(g), sugar(g) - 모르는 영양소는 ""
+신선식품 보관기간(구매일 기준 expiry 자동계산):
+- 뿌리채소(무/당근/감자/고구마): 냉장 21일
+- 잎채소(대파/상추/시금치/깻잎): 냉장 7일
+- 과일(사과/배): 냉장 30일, 바나나/딸기: 7일
+- 두부: 개봉전 14일, 계란: 30일
+- 육류(소고기/돼지고기/닭고기): 냉장 3일
+- 생선/해산물: 냉장 2일
+- 유통기한 표시 없는 신선식품은 위 기준 적용
+여러 품목이면 배열로: [{"type":"inventory_add",...}, {"type":"inventory_add",...}]
 JSON만 반환. 마크다운 금지.`,
       messages: [{ role: "user", content: text }],
     }),
   });
   const data = await res.json();
   const raw = (data.content?.[0]?.text || "{}").replace(/```json|```/g, "").trim();
-  return JSON.parse(raw);
+  const parsed = JSON.parse(raw);
+  // 배열이면 첫 번째 항목 기준으로 카드 표시, 전체는 _batch로 저장
+  if (Array.isArray(parsed)) {
+    parsed[0]._batch = parsed;
+    return parsed[0];
+  }
+  return parsed;
 }
 
 // 파싱 결과 카드 표시
@@ -237,7 +255,7 @@ function showParsedCard(parsed) {
   document.getElementById("parsedIcon").textContent = meta.icon;
   document.getElementById("parsedLabel").textContent = meta.label;
 
-  const rows = Object.entries(parsed).filter(([k]) => k !== "type").map(([k, v]) => {
+  const rows = Object.entries(parsed).filter(([k]) => k !== "type" && k !== "_batch").map(([k, v]) => {
     const isAmount = k === "amount";
     return `<div class="parsed-row">
       <span class="parsed-key">${k}</span>
@@ -259,7 +277,11 @@ async function handleConfirm() {
   btn.textContent = "전송 중...";
 
   try {
-    await sendToSheet(currentParsed);
+    const batch = currentParsed._batch || [currentParsed];
+    for (const item of batch) {
+      const { _batch, ...payload } = item;
+      await sendToSheet(payload);
+    }
     const text = document.getElementById("nlInput").value.trim();
     addHistory(TYPE_META[currentParsed.type]?.icon + " " + (currentParsed.content || currentParsed.name || text), currentParsed.amount);
     document.getElementById("nlInput").value = "";
