@@ -247,7 +247,7 @@ async function parseWithClaude(text) {
       "anthropic-dangerous-direct-browser-access": "true"
     },
     body: JSON.stringify({
-      model: "claude-sonnet-4-5-20251001",
+      model: "claude-sonnet-4-20250514",
       max_tokens: 300,
       system: `가계부 입력 파서. 자연어를 JSON으로 변환. 오늘: ${todayStr}
 type: "log"(지출/수입), "inventory_add"(식재료추가), "inventory_use"(식재료소비), "pharmacy_use"(약복용), "health_log"(식단기록)
