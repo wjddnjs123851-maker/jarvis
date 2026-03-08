@@ -67,6 +67,7 @@
     .key-screen p { font-size: 13px; color: #3d4558; margin-bottom: 24px; text-align: center; line-height: 1.6; }
     .key-screen input { width: 100%; max-width: 400px; background: #13161e; border: 1px solid #2d4a6e; border-radius: 10px; padding: 14px; color: #e8eaf0; font-size: 13px; outline: none; font-family: monospace; margin-bottom: 12px; }
     .key-screen button { width: 100%; max-width: 400px; padding: 14px; border-radius: 12px; border: none; background: linear-gradient(135deg, #1971c2, #1864ab); color: #fff; font-weight: 700; font-size: 15px; cursor: pointer; font-family: inherit; }
+    .hidden { display: none; }
     @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
   </style>
 </head>
@@ -172,7 +173,6 @@
 const API_URL = "https://script.google.com/macros/s/AKfycbx40fZ_z2Xv2dlQpoGgJaCbdpSSQrPeW5m7-lGxULWV8yDH3nffbnyvlOYK0w2NpErh/exec";
 const CLAUDE_API = "https://api.anthropic.com/v1/messages";
 
-// API 키 초기화
 let ANTHROPIC_KEY = localStorage.getItem("jarvis_api_key") || "";
 if (ANTHROPIC_KEY) {
   document.getElementById("keyScreen").style.display = "none";
@@ -200,14 +200,12 @@ const TYPE_META = {
 let currentParsed = null;
 let history = [];
 
-// 날짜 초기화
 const kst = new Date(Date.now() + 9*3600000);
 const todayStr = kst.toISOString().slice(0,10);
 document.getElementById("m_date").value = todayStr;
 document.getElementById("headerDate").textContent =
   kst.toLocaleDateString("ko-KR", { month:"long", day:"numeric", weekday:"short" });
 
-// 탭 전환
 function switchTab(tab) {
   document.getElementById("tab-auto").classList.toggle("hidden", tab !== "auto");
   document.getElementById("tab-manual").classList.toggle("hidden", tab !== "manual");
@@ -217,12 +215,10 @@ function switchTab(tab) {
   hideMsg(); resetCard();
 }
 
-// 엔터키로 파싱
 document.getElementById("nlInput").addEventListener("keydown", function(e) {
   if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleParse(); }
 });
 
-// 파싱
 async function handleParse() {
   const text = document.getElementById("nlInput").value.trim();
   if (!text) return;
@@ -230,7 +226,6 @@ async function handleParse() {
   btn.disabled = true;
   btn.textContent = "🤖 읽는 중...";
   resetCard(); hideMsg();
-
   try {
     const result = await parseWithClaude(text);
     currentParsed = result;
@@ -238,12 +233,10 @@ async function handleParse() {
   } catch(e) {
     showMsg("❌ 파싱 오류가 났어요. 다시 시도해주세요.", "error");
   }
-
   btn.disabled = false;
   btn.textContent = "파싱하기 →";
 }
 
-// Claude API 호출
 async function parseWithClaude(text) {
   const res = await fetch(CLAUDE_API, {
     method: "POST",
@@ -284,12 +277,10 @@ JSON만 반환. 마크다운 금지.`,
   return parsed;
 }
 
-// 파싱 결과 카드 표시
 function showParsedCard(parsed) {
   const meta = TYPE_META[parsed.type] || { icon: "📝", label: parsed.type };
   document.getElementById("parsedIcon").textContent = meta.icon;
   document.getElementById("parsedLabel").textContent = meta.label;
-
   const rows = Object.entries(parsed).filter(([k]) => k !== "type" && k !== "_batch").map(([k, v]) => {
     const isAmount = k === "amount";
     return `<div class="parsed-row">
@@ -299,18 +290,15 @@ function showParsedCard(parsed) {
       </span>
     </div>`;
   }).join("");
-
   document.getElementById("parsedRows").innerHTML = rows;
   document.getElementById("parsedCard").classList.remove("hidden");
 }
 
-// 시트에 기록
 async function handleConfirm() {
   if (!currentParsed) return;
   const btn = document.getElementById("confirmBtn");
   btn.disabled = true;
   btn.textContent = "전송 중...";
-
   try {
     const batch = currentParsed._batch || [currentParsed];
     for (const item of batch) {
@@ -326,17 +314,14 @@ async function handleConfirm() {
   } catch(e) {
     showMsg("❌ 전송 오류가 났어요. Apps Script 상태를 확인해주세요.", "error");
   }
-
   btn.disabled = false;
   btn.textContent = "✅ 시트에 기록";
 }
 
-// 직접 입력 전송
 async function handleManual() {
   const content = document.getElementById("m_content").value.trim();
   const amount = document.getElementById("m_amount").value.trim();
   if (!content || !amount) { showMsg("내용과 금액을 입력해주세요.", "error"); return; }
-
   const payload = {
     type: "log",
     date: document.getElementById("m_date").value,
@@ -346,7 +331,6 @@ async function handleManual() {
     amount: Number(amount),
     method: document.getElementById("m_method").value,
   };
-
   try {
     await sendToSheet(payload);
     addHistory("💳 " + content, Number(amount));
@@ -359,233 +343,12 @@ async function handleManual() {
   }
 }
 
-// Apps Script GET 방식 전송
 async function sendToSheet(payload) {
   const url = `${API_URL}?payload=${encodeURIComponent(JSON.stringify(payload))}`;
   const data = await (await fetch(url)).json();
   if (data.status !== "ok") throw new Error(data.message || "unknown error");
 }
 
-// 최근 기록 추가
-function addHistory(label, amount) {
-  const time = new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
-  history.unshift({ label, amount, time });
-  if (history.length > 8) history.pop();
-  renderHistory();
-}
-
-function renderHistory() {
-  if (history.length === 0) return;
-  document.getElementById("historySection").classList.remove("hidden");
-  document.getElementById("historyList").innerHTML = history.map(h => `
-    <div class="history-item">
-      <div class="history-name">${h.label}</div>
-      <div>
-        ${h.amount ? `<div class="history-amount">${Number(h.amount).toLocaleString()}원</div>` : ""}
-        <div class="history-time">${h.time}</div>
-      </div>
-    </div>
-  `).join("");
-}
-
-function resetCard() {
-  currentParsed = null;
-  document.getElementById("parsedCard").classList.add("hidden");
-}
-
-function showMsg(text, type) {
-  const el = document.getElementById("statusMsg");
-  el.textContent = text;
-  el.className = `msg ${type}`;
-  el.classList.remove("hidden");
-}
-
-function hideMsg() {
-  document.getElementById("statusMsg").classList.add("hidden");
-}
-</script>
-</body>
-</html>
-
-const TYPE_META = {
-  log: { icon: "💳", label: "가계부" },
-  inventory_add: { icon: "🛒", label: "식재료 추가" },
-  inventory_use: { icon: "🍳", label: "식재료 소비" },
-  pharmacy_use: { icon: "💊", label: "약품 복용" },
-  health_log: { icon: "🥗", label: "식단 기록" },
-};
-
-let currentParsed = null;
-let history = [];
-
-// 날짜 초기화
-const kst = new Date(Date.now() + 9*3600000);
-const todayStr = kst.toISOString().slice(0,10);
-document.getElementById("m_date").value = todayStr;
-document.getElementById("headerDate").textContent =
-  kst.toLocaleDateString("ko-KR", { month:"long", day:"numeric", weekday:"short" });
-
-// 탭 전환
-function switchTab(tab) {
-  document.getElementById("tab-auto").classList.toggle("hidden", tab !== "auto");
-  document.getElementById("tab-manual").classList.toggle("hidden", tab !== "manual");
-  document.querySelectorAll(".tab-btn").forEach((btn, i) => {
-    btn.classList.toggle("active", (i === 0 && tab === "auto") || (i === 1 && tab === "manual"));
-  });
-  hideMsg(); resetCard();
-}
-
-// 엔터키로 파싱
-document.getElementById("nlInput").addEventListener("keydown", function(e) {
-  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleParse(); }
-});
-
-// 파싱
-async function handleParse() {
-  const text = document.getElementById("nlInput").value.trim();
-  if (!text) return;
-  const btn = document.getElementById("parseBtn");
-  btn.disabled = true;
-  btn.textContent = "🤖 읽는 중...";
-  resetCard(); hideMsg();
-
-  try {
-    const result = await parseWithClaude(text);
-    currentParsed = result;
-    showParsedCard(result);
-  } catch(e) {
-    showMsg("❌ 파싱 오류가 났어요. 다시 시도해주세요.", "error");
-  }
-
-  btn.disabled = false;
-  btn.textContent = "파싱하기 →";
-}
-
-// Claude API 호출
-async function parseWithClaude(text) {
-  const res = await fetch(CLAUDE_API, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": "YOUR_API_KEY",
-      "anthropic-version": "2023-06-01",
-      "anthropic-dangerous-direct-browser-access": "true"
-    },
-    body: JSON.stringify({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 300,
-      system: `가계부 입력 파서. 자연어를 JSON으로 변환. 오늘: ${todayStr}
-type: "log"(지출/수입), "inventory_add"(식재료추가), "inventory_use"(식재료소비), "pharmacy_use"(약복용), "health_log"(식단기록)
-log면: date, category(지출/수입), subcategory(식비/주거/교통/구독/생활용품/건강/보험/통신/문화/금융/급여/기타), content, amount(숫자만), method(하나카드/우리카드/현대카드/국민카드/계좌이체/현금, 언급없으면 하나카드)
-inventory_add면: name, amount(용량/개수), expiry(yyyy-MM-dd), count(개수없으면 "-")
-health_log면: date, name(음식명), amount(섭취량), calories(kcal), carbs(g), protein(g), fat(g), sodium(mg), cholesterol(mg), sat_fat(g), fiber(g), sugar(g) - 모르는 영양소는 ""
-신선식품 보관기간(구매일 기준 expiry 자동계산):
-- 뿌리채소(무/당근/감자/고구마): 냉장 21일
-- 잎채소(대파/상추/시금치/깻잎): 냉장 7일
-- 과일(사과/배): 냉장 30일, 바나나/딸기: 7일
-- 두부: 개봉전 14일, 계란: 30일
-- 육류(소고기/돼지고기/닭고기): 냉장 3일
-- 생선/해산물: 냉장 2일
-- 유통기한 표시 없는 신선식품은 위 기준 적용
-여러 품목이면 배열로: [{"type":"inventory_add",...}, {"type":"inventory_add",...}]
-JSON만 반환. 마크다운 금지.`,
-      messages: [{ role: "user", content: text }],
-    }),
-  });
-  const data = await res.json();
-  const raw = (data.content?.[0]?.text || "{}").replace(/```json|```/g, "").trim();
-  const parsed = JSON.parse(raw);
-  // 배열이면 첫 번째 항목 기준으로 카드 표시, 전체는 _batch로 저장
-  if (Array.isArray(parsed)) {
-    parsed[0]._batch = parsed;
-    return parsed[0];
-  }
-  return parsed;
-}
-
-// 파싱 결과 카드 표시
-function showParsedCard(parsed) {
-  const meta = TYPE_META[parsed.type] || { icon: "📝", label: parsed.type };
-  document.getElementById("parsedIcon").textContent = meta.icon;
-  document.getElementById("parsedLabel").textContent = meta.label;
-
-  const rows = Object.entries(parsed).filter(([k]) => k !== "type" && k !== "_batch").map(([k, v]) => {
-    const isAmount = k === "amount";
-    return `<div class="parsed-row">
-      <span class="parsed-key">${k}</span>
-      <span class="parsed-val ${isAmount ? "amount" : ""}">
-        ${isAmount ? Number(v).toLocaleString() + "원" : v}
-      </span>
-    </div>`;
-  }).join("");
-
-  document.getElementById("parsedRows").innerHTML = rows;
-  document.getElementById("parsedCard").classList.remove("hidden");
-}
-
-// 시트에 기록
-async function handleConfirm() {
-  if (!currentParsed) return;
-  const btn = document.getElementById("confirmBtn");
-  btn.disabled = true;
-  btn.textContent = "전송 중...";
-
-  try {
-    const batch = currentParsed._batch || [currentParsed];
-    for (const item of batch) {
-      const { _batch, ...payload } = item;
-      await sendToSheet(payload);
-    }
-    const text = document.getElementById("nlInput").value.trim();
-    addHistory(TYPE_META[currentParsed.type]?.icon + " " + (currentParsed.content || currentParsed.name || text), currentParsed.amount);
-    document.getElementById("nlInput").value = "";
-    resetCard();
-    showMsg("✅ Google Sheets에 기록됐어요!", "success");
-    setTimeout(hideMsg, 3000);
-  } catch(e) {
-    showMsg("❌ 전송 오류가 났어요. Apps Script 상태를 확인해주세요.", "error");
-  }
-
-  btn.disabled = false;
-  btn.textContent = "✅ 시트에 기록";
-}
-
-// 직접 입력 전송
-async function handleManual() {
-  const content = document.getElementById("m_content").value.trim();
-  const amount = document.getElementById("m_amount").value.trim();
-  if (!content || !amount) { showMsg("내용과 금액을 입력해주세요.", "error"); return; }
-
-  const payload = {
-    type: "log",
-    date: document.getElementById("m_date").value,
-    category: document.getElementById("m_category").value,
-    subcategory: document.getElementById("m_subcategory").value,
-    content,
-    amount: Number(amount),
-    method: document.getElementById("m_method").value,
-  };
-
-  try {
-    await sendToSheet(payload);
-    addHistory("💳 " + content, Number(amount));
-    document.getElementById("m_content").value = "";
-    document.getElementById("m_amount").value = "";
-    showMsg("✅ Google Sheets에 기록됐어요!", "success");
-    setTimeout(hideMsg, 3000);
-  } catch(e) {
-    showMsg("❌ 전송 오류가 났어요.", "error");
-  }
-}
-
-// Apps Script GET 방식 전송
-async function sendToSheet(payload) {
-  const url = `${API_URL}?payload=${encodeURIComponent(JSON.stringify(payload))}`;
-  const data = await (await fetch(url)).json();
-  if (data.status !== "ok") throw new Error(data.message || "unknown error");
-}
-
-// 최근 기록 추가
 function addHistory(label, amount) {
   const time = new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
   history.unshift({ label, amount, time });
