@@ -7,29 +7,22 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
     body { background: #0a0c10; color: #e8eaf0; font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; min-height: 100vh; padding-bottom: 60px; }
-
     .header { background: #0d1117; border-bottom: 1px solid #1e2330; padding: 22px 24px 18px; }
     .header-inner { max-width: 520px; margin: 0 auto; display: flex; justify-content: space-between; align-items: flex-end; }
     .header-sub { font-size: 10px; letter-spacing: 4px; color: #4dabf7; margin-bottom: 5px; font-weight: 600; }
     .header-title { font-size: 20px; font-weight: 800; }
     .header-date { font-size: 12px; color: #3d4558; text-align: right; }
-
     .inner { max-width: 520px; margin: 0 auto; padding: 20px; }
-
     .tabs { display: flex; background: #13161e; border-radius: 12px; padding: 4px; margin-bottom: 22px; border: 1px solid #1e2330; }
     .tab-btn { flex: 1; padding: 10px 0; border-radius: 9px; border: none; background: transparent; color: #3d4558; font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.15s; font-family: inherit; }
     .tab-btn.active { background: #1c2333; color: #4dabf7; box-shadow: 0 1px 8px rgba(0,0,0,0.4); }
-
     textarea { width: 100%; background: #13161e; border: 1px solid #1e2330; border-radius: 14px; padding: 16px 18px; color: #e8eaf0; font-size: 15px; line-height: 1.75; resize: none; outline: none; font-family: inherit; transition: border-color 0.2s; }
     textarea:focus { border-color: #2d4a6e; }
-
     .btn-primary { width: 100%; margin-top: 10px; padding: 14px 0; border-radius: 12px; border: none; background: linear-gradient(135deg, #1971c2, #1864ab); color: #fff; font-weight: 700; font-size: 15px; cursor: pointer; font-family: inherit; transition: opacity 0.2s; }
     .btn-primary:disabled { background: #13161e; color: #2d3348; cursor: not-allowed; }
     .btn-primary:not(:disabled):hover { opacity: 0.9; }
-
     .btn-success { flex: 1; padding: 12px 0; border-radius: 10px; border: none; background: linear-gradient(135deg, #2f9e44, #2b8a3e); color: #fff; font-weight: 700; font-size: 15px; cursor: pointer; font-family: inherit; }
     .btn-cancel { padding: 12px 16px; border-radius: 10px; background: #1a1e2a; border: 1px solid #2d3348; color: #666; font-size: 13px; cursor: pointer; font-family: inherit; }
-
     .parsed-card { margin-top: 16px; background: #13161e; border: 1px solid #253046; border-radius: 16px; padding: 20px 22px; animation: fadeIn 0.2s ease; }
     .parsed-header { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
     .parsed-type-icon { font-size: 20px; }
@@ -40,47 +33,25 @@
     .parsed-val { color: #c8cfe0; font-size: 14px; }
     .parsed-val.amount { color: #ffd166; font-size: 20px; font-weight: 800; }
     .parsed-actions { display: flex; gap: 8px; margin-top: 16px; }
-
     .field-group { margin-bottom: 14px; }
     .field-label { font-size: 11px; color: #3d4558; margin-bottom: 6px; letter-spacing: 1px; }
-    input[type=text], input[type=number], input[type=date], select {
-      width: 100%; background: #13161e; border: 1px solid #1e2330; border-radius: 10px;
-      padding: 12px 14px; color: #e8eaf0; font-size: 14px; outline: none; font-family: inherit;
-    }
+    input[type=text], input[type=number], input[type=date], select { width: 100%; background: #13161e; border: 1px solid #1e2330; border-radius: 10px; padding: 12px 14px; color: #e8eaf0; font-size: 14px; outline: none; font-family: inherit; }
     select option { background: #13161e; }
     input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
-
     .msg { margin-top: 14px; padding: 13px 18px; border-radius: 12px; font-weight: 600; text-align: center; font-size: 14px; }
     .msg.success { background: rgba(47,158,68,0.12); border: 1px solid rgba(47,158,68,0.3); color: #69db7c; }
     .msg.error { background: rgba(255,107,107,0.1); border: 1px solid rgba(255,107,107,0.25); color: #ff8787; }
-
     .history-section { margin-top: 32px; }
     .history-label { font-size: 10px; color: #2d3348; letter-spacing: 3px; margin-bottom: 14px; font-weight: 600; }
     .history-item { display: flex; justify-content: space-between; align-items: center; padding: 11px 0; border-bottom: 1px solid #13161e; }
     .history-name { font-size: 14px; color: #c8cfe0; }
     .history-amount { font-size: 15px; font-weight: 700; color: #ffd166; text-align: right; }
     .history-time { font-size: 11px; color: #2d3348; margin-top: 2px; text-align: right; }
-
-    .key-screen { position: fixed; inset: 0; background: #0a0c10; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px; z-index: 999; }
-    .key-screen .logo { font-size: 13px; letter-spacing: 4px; color: #4dabf7; margin-bottom: 8px; font-weight: 700; }
-    .key-screen h2 { font-size: 18px; font-weight: 800; margin-bottom: 8px; }
-    .key-screen p { font-size: 13px; color: #3d4558; margin-bottom: 24px; text-align: center; line-height: 1.6; }
-    .key-screen input { width: 100%; max-width: 400px; background: #13161e; border: 1px solid #2d4a6e; border-radius: 10px; padding: 14px; color: #e8eaf0; font-size: 13px; outline: none; font-family: monospace; margin-bottom: 12px; }
-    .key-screen button { width: 100%; max-width: 400px; padding: 14px; border-radius: 12px; border: none; background: linear-gradient(135deg, #1971c2, #1864ab); color: #fff; font-weight: 700; font-size: 15px; cursor: pointer; font-family: inherit; }
     .hidden { display: none; }
     @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
   </style>
 </head>
 <body>
-
-<!-- API 키 입력 화면 -->
-<div class="key-screen" id="keyScreen">
-  <div class="logo">JARVIS PRIME</div>
-  <h2>API 키 입력</h2>
-  <p>Anthropic API 키를 입력해주세요.<br>한 번만 입력하면 이 기기에 저장돼요.</p>
-  <input type="password" id="apiKeyInput" placeholder="sk-ant-...">
-  <button onclick="saveApiKey()">저장하고 시작하기 →</button>
-</div>
 
 <div class="header">
   <div class="header-inner">
@@ -93,20 +64,15 @@
 </div>
 
 <div class="inner">
-  <!-- 탭 -->
   <div class="tabs">
     <button class="tab-btn active" onclick="switchTab('auto')">🤖 자연어</button>
     <button class="tab-btn" onclick="switchTab('manual')">✏️ 직접입력</button>
   </div>
 
-  <!-- 자연어 탭 -->
   <div id="tab-auto">
-    <textarea id="nlInput" rows="5"
-      placeholder="개떡같이 말해도 돼요 😄&#10;&#10;예) 편의점 삼각김밥 1500 하나카드&#10;예) 버스 1500&#10;예) 타이레놀 2알 먹었어&#10;예) 오이 3개 샀어">
-    </textarea>
+    <textarea id="nlInput" rows="5" placeholder="개떡같이 말해도 돼요 😄&#10;&#10;예) 편의점 삼각김밥 1500 하나카드&#10;예) 버스 1500&#10;예) 타이레놀 2알 먹었어&#10;예) 오이 3개 샀어"></textarea>
     <button class="btn-primary" id="parseBtn" onclick="handleParse()">파싱하기 →</button>
 
-    <!-- 파싱 결과 카드 -->
     <div class="parsed-card hidden" id="parsedCard">
       <div class="parsed-header">
         <span class="parsed-type-icon" id="parsedIcon"></span>
@@ -121,25 +87,13 @@
     </div>
   </div>
 
-  <!-- 직접입력 탭 -->
   <div id="tab-manual" class="hidden">
-    <div class="field-group">
-      <div class="field-label">날짜</div>
-      <input type="date" id="m_date">
-    </div>
-    <div class="field-group">
-      <div class="field-label">내용</div>
-      <input type="text" id="m_content" placeholder="편의점 삼각김밥">
-    </div>
-    <div class="field-group">
-      <div class="field-label">금액 (원)</div>
-      <input type="number" id="m_amount" placeholder="1500">
-    </div>
+    <div class="field-group"><div class="field-label">날짜</div><input type="date" id="m_date"></div>
+    <div class="field-group"><div class="field-label">내용</div><input type="text" id="m_content" placeholder="편의점 삼각김밥"></div>
+    <div class="field-group"><div class="field-label">금액 (원)</div><input type="number" id="m_amount" placeholder="1500"></div>
     <div class="field-group">
       <div class="field-label">구분</div>
-      <select id="m_category">
-        <option>지출</option><option>수입</option>
-      </select>
+      <select id="m_category"><option>지출</option><option>수입</option></select>
     </div>
     <div class="field-group">
       <div class="field-label">대분류</div>
@@ -159,10 +113,8 @@
     <button class="btn-primary" style="margin-top:4px" onclick="handleManual()">시트에 기록 →</button>
   </div>
 
-  <!-- 상태 메시지 -->
   <div id="statusMsg" class="hidden"></div>
 
-  <!-- 최근 기록 -->
   <div class="history-section hidden" id="historySection">
     <div class="history-label">최근 기록</div>
     <div id="historyList"></div>
@@ -171,40 +123,23 @@
 
 <script>
 const API_URL = "https://script.google.com/macros/s/AKfycbx40fZ_z2Xv2dlQpoGgJaCbdpSSQrPeW5m7-lGxULWV8yDH3nffbnyvlOYK0w2NpErh/exec";
-const CLAUDE_API = "https://api.anthropic.com/v1/messages";
-
-let ANTHROPIC_KEY = localStorage.getItem("jarvis_api_key") || "";
-if (ANTHROPIC_KEY) {
-  document.getElementById("keyScreen").style.display = "none";
-}
-
-function saveApiKey() {
-  const key = document.getElementById("apiKeyInput").value.trim();
-  if (!key.startsWith("sk-ant-")) {
-    alert("올바른 API 키를 입력해주세요. (sk-ant- 로 시작)");
-    return;
-  }
-  localStorage.setItem("jarvis_api_key", key);
-  ANTHROPIC_KEY = key;
-  document.getElementById("keyScreen").style.display = "none";
-}
 
 const TYPE_META = {
-  log: { icon: "💳", label: "가계부" },
+  log:           { icon: "💳", label: "가계부" },
   inventory_add: { icon: "🛒", label: "식재료 추가" },
   inventory_use: { icon: "🍳", label: "식재료 소비" },
-  pharmacy_use: { icon: "💊", label: "약품 복용" },
-  health_log: { icon: "🥗", label: "식단 기록" },
+  pharmacy_use:  { icon: "💊", label: "약품 복용" },
+  health_log:    { icon: "🥗", label: "식단 기록" },
 };
 
 let currentParsed = null;
 let history = [];
 
-const kst = new Date(Date.now() + 9*3600000);
-const todayStr = kst.toISOString().slice(0,10);
+const kst = new Date(Date.now() + 9 * 3600000);
+const todayStr = kst.toISOString().slice(0, 10);
 document.getElementById("m_date").value = todayStr;
 document.getElementById("headerDate").textContent =
-  kst.toLocaleDateString("ko-KR", { month:"long", day:"numeric", weekday:"short" });
+  kst.toLocaleDateString("ko-KR", { month: "long", day: "numeric", weekday: "short" });
 
 function switchTab(tab) {
   document.getElementById("tab-auto").classList.toggle("hidden", tab !== "auto");
@@ -226,55 +161,27 @@ async function handleParse() {
   btn.disabled = true;
   btn.textContent = "🤖 읽는 중...";
   resetCard(); hideMsg();
+
   try {
-    const result = await parseWithClaude(text);
-    currentParsed = result;
-    showParsedCard(result);
+    const url = API_URL + "?payload=" + encodeURIComponent(JSON.stringify({ type: "parse", text: text }));
+    const res = await fetch(url);
+    const data = await res.json();
+    if (data.status !== "ok") throw new Error(data.message || "파싱 실패");
+
+    const parsed = data.data;
+    if (Array.isArray(parsed)) {
+      parsed[0]._batch = parsed;
+      currentParsed = parsed[0];
+    } else {
+      currentParsed = parsed;
+    }
+    showParsedCard(currentParsed);
   } catch(e) {
-    showMsg("❌ 파싱 오류가 났어요. 다시 시도해주세요.", "error");
+    showMsg("❌ 파싱 오류: " + e.message, "error");
   }
+
   btn.disabled = false;
   btn.textContent = "파싱하기 →";
-}
-
-async function parseWithClaude(text) {
-  const res = await fetch(CLAUDE_API, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": ANTHROPIC_KEY,
-      "anthropic-version": "2023-06-01",
-      "anthropic-dangerous-direct-browser-access": "true"
-    },
-    body: JSON.stringify({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 300,
-      system: `가계부 입력 파서. 자연어를 JSON으로 변환. 오늘: ${todayStr}
-type: "log"(지출/수입), "inventory_add"(식재료추가), "inventory_use"(식재료소비), "pharmacy_use"(약복용), "health_log"(식단기록)
-log면: date, category(지출/수입), subcategory(식비/주거/교통/구독/생활용품/건강/보험/통신/문화/금융/급여/기타), content, amount(숫자만), method(하나카드/우리카드/현대카드/국민카드/계좌이체/현금, 언급없으면 하나카드)
-inventory_add면: name, amount(용량/개수), expiry(yyyy-MM-dd), count(개수없으면 "-")
-health_log면: date, name(음식명), amount(섭취량), calories(kcal), carbs(g), protein(g), fat(g), sodium(mg), cholesterol(mg), sat_fat(g), fiber(g), sugar(g) - 모르는 영양소는 ""
-신선식품 보관기간(구매일 기준 expiry 자동계산):
-- 뿌리채소(무/당근/감자/고구마): 냉장 21일
-- 잎채소(대파/상추/시금치/깻잎): 냉장 7일
-- 과일(사과/배): 냉장 30일, 바나나/딸기: 7일
-- 두부: 개봉전 14일, 계란: 30일
-- 육류(소고기/돼지고기/닭고기): 냉장 3일
-- 생선/해산물: 냉장 2일
-- 유통기한 표시 없는 신선식품은 위 기준 적용
-여러 품목이면 배열로: [{"type":"inventory_add",...}, {"type":"inventory_add",...}]
-JSON만 반환. 마크다운 금지.`,
-      messages: [{ role: "user", content: text }],
-    }),
-  });
-  const data = await res.json();
-  const raw = (data.content?.[0]?.text || "{}").replace(/```json|```/g, "").trim();
-  const parsed = JSON.parse(raw);
-  if (Array.isArray(parsed)) {
-    parsed[0]._batch = parsed;
-    return parsed[0];
-  }
-  return parsed;
 }
 
 function showParsedCard(parsed) {
@@ -283,12 +190,7 @@ function showParsedCard(parsed) {
   document.getElementById("parsedLabel").textContent = meta.label;
   const rows = Object.entries(parsed).filter(([k]) => k !== "type" && k !== "_batch").map(([k, v]) => {
     const isAmount = k === "amount";
-    return `<div class="parsed-row">
-      <span class="parsed-key">${k}</span>
-      <span class="parsed-val ${isAmount ? "amount" : ""}">
-        ${isAmount ? Number(v).toLocaleString() + "원" : v}
-      </span>
-    </div>`;
+    return '<div class="parsed-row"><span class="parsed-key">' + k + '</span><span class="parsed-val' + (isAmount ? ' amount' : '') + '">' + (isAmount ? Number(v).toLocaleString() + "원" : v) + '</span></div>';
   }).join("");
   document.getElementById("parsedRows").innerHTML = rows;
   document.getElementById("parsedCard").classList.remove("hidden");
@@ -302,17 +204,18 @@ async function handleConfirm() {
   try {
     const batch = currentParsed._batch || [currentParsed];
     for (const item of batch) {
-      const { _batch, ...payload } = item;
+      const payload = Object.assign({}, item);
+      delete payload._batch;
       await sendToSheet(payload);
     }
     const text = document.getElementById("nlInput").value.trim();
-    addHistory(TYPE_META[currentParsed.type]?.icon + " " + (currentParsed.content || currentParsed.name || text), currentParsed.amount);
+    addHistory((TYPE_META[currentParsed.type]?.icon || "") + " " + (currentParsed.content || currentParsed.name || text), currentParsed.amount);
     document.getElementById("nlInput").value = "";
     resetCard();
     showMsg("✅ Google Sheets에 기록됐어요!", "success");
     setTimeout(hideMsg, 3000);
   } catch(e) {
-    showMsg("❌ 전송 오류가 났어요. Apps Script 상태를 확인해주세요.", "error");
+    showMsg("❌ 전송 오류: " + e.message, "error");
   }
   btn.disabled = false;
   btn.textContent = "✅ 시트에 기록";
@@ -327,7 +230,7 @@ async function handleManual() {
     date: document.getElementById("m_date").value,
     category: document.getElementById("m_category").value,
     subcategory: document.getElementById("m_subcategory").value,
-    content,
+    content: content,
     amount: Number(amount),
     method: document.getElementById("m_method").value,
   };
@@ -339,19 +242,19 @@ async function handleManual() {
     showMsg("✅ Google Sheets에 기록됐어요!", "success");
     setTimeout(hideMsg, 3000);
   } catch(e) {
-    showMsg("❌ 전송 오류가 났어요.", "error");
+    showMsg("❌ 전송 오류: " + e.message, "error");
   }
 }
 
 async function sendToSheet(payload) {
-  const url = `${API_URL}?payload=${encodeURIComponent(JSON.stringify(payload))}`;
+  const url = API_URL + "?payload=" + encodeURIComponent(JSON.stringify(payload));
   const data = await (await fetch(url)).json();
   if (data.status !== "ok") throw new Error(data.message || "unknown error");
 }
 
 function addHistory(label, amount) {
   const time = new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
-  history.unshift({ label, amount, time });
+  history.unshift({ label: label, amount: amount, time: time });
   if (history.length > 8) history.pop();
   renderHistory();
 }
@@ -359,15 +262,9 @@ function addHistory(label, amount) {
 function renderHistory() {
   if (history.length === 0) return;
   document.getElementById("historySection").classList.remove("hidden");
-  document.getElementById("historyList").innerHTML = history.map(h => `
-    <div class="history-item">
-      <div class="history-name">${h.label}</div>
-      <div>
-        ${h.amount ? `<div class="history-amount">${Number(h.amount).toLocaleString()}원</div>` : ""}
-        <div class="history-time">${h.time}</div>
-      </div>
-    </div>
-  `).join("");
+  document.getElementById("historyList").innerHTML = history.map(function(h) {
+    return '<div class="history-item"><div class="history-name">' + h.label + '</div><div>' + (h.amount ? '<div class="history-amount">' + Number(h.amount).toLocaleString() + '원</div>' : '') + '<div class="history-time">' + h.time + '</div></div></div>';
+  }).join("");
 }
 
 function resetCard() {
@@ -378,7 +275,7 @@ function resetCard() {
 function showMsg(text, type) {
   const el = document.getElementById("statusMsg");
   el.textContent = text;
-  el.className = `msg ${type}`;
+  el.className = "msg " + type;
   el.classList.remove("hidden");
 }
 
