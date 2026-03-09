@@ -27,6 +27,7 @@
     .parsed-header { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
     .parsed-type-icon { font-size: 20px; }
     .parsed-type-label { color: #4dabf7; font-weight: 700; font-size: 13px; }
+    .parsed-batch-badge { background: #1c2f4a; color: #4dabf7; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; border: 1px solid #2d4a6e; }
     .parsed-hint { margin-left: auto; font-size: 11px; color: #3d4558; }
     .parsed-row { display: flex; gap: 12px; align-items: baseline; margin-bottom: 8px; }
     .parsed-key { color: #3d4558; font-size: 11px; min-width: 72px; text-align: right; }
@@ -77,6 +78,7 @@
       <div class="parsed-header">
         <span class="parsed-type-icon" id="parsedIcon"></span>
         <span class="parsed-type-label" id="parsedLabel"></span>
+        <span class="parsed-batch-badge hidden" id="parsedBatch"></span>
         <span class="parsed-hint">맞으면 기록 눌러요</span>
       </div>
       <div id="parsedRows"></div>
@@ -132,14 +134,27 @@ const TYPE_META = {
   health_log:    { icon: "🥗", label: "식단 기록" },
 };
 
+// amount를 "원"으로 표시할 타입
+const AMOUNT_AS_MONEY = ["log"];
+
 let currentParsed = null;
 let history = [];
 
-const kst = new Date(Date.now() + 9 * 3600000);
-const todayStr = kst.toISOString().slice(0, 10);
-document.getElementById("m_date").value = todayStr;
-document.getElementById("headerDate").textContent =
-  kst.toLocaleDateString("ko-KR", { month: "long", day: "numeric", weekday: "short" });
+// 날짜: 매번 동적으로 계산
+function getKstDateStr() {
+  return new Date(Date.now() + 9 * 3600000).toISOString().slice(0, 10);
+}
+
+function updateHeaderDate() {
+  const kst = new Date(Date.now() + 9 * 3600000);
+  document.getElementById("m_date").value = getKstDateStr();
+  document.getElementById("headerDate").textContent =
+    kst.toLocaleDateString("ko-KR", { month: "long", day: "numeric", weekday: "short" });
+}
+updateHeaderDate();
+
+// 자정 넘어가면 날짜 자동 갱신
+setInterval(updateHeaderDate, 60000);
 
 function switchTab(tab) {
   document.getElementById("tab-auto").classList.toggle("hidden", tab !== "auto");
@@ -186,12 +201,26 @@ async function handleParse() {
 
 function showParsedCard(parsed) {
   const meta = TYPE_META[parsed.type] || { icon: "📝", label: parsed.type };
+  const isMoney = AMOUNT_AS_MONEY.includes(parsed.type);
+
   document.getElementById("parsedIcon").textContent = meta.icon;
   document.getElementById("parsedLabel").textContent = meta.label;
+
+  // 배열 건수 뱃지
+  const batchEl = document.getElementById("parsedBatch");
+  const batchCount = parsed._batch ? parsed._batch.length : 0;
+  if (batchCount > 1) {
+    batchEl.textContent = batchCount + "건";
+    batchEl.classList.remove("hidden");
+  } else {
+    batchEl.classList.add("hidden");
+  }
+
   const rows = Object.entries(parsed).filter(([k]) => k !== "type" && k !== "_batch").map(([k, v]) => {
-    const isAmount = k === "amount";
-    return '<div class="parsed-row"><span class="parsed-key">' + k + '</span><span class="parsed-val' + (isAmount ? ' amount' : '') + '">' + (isAmount ? Number(v).toLocaleString() + "원" : v) + '</span></div>';
+    const isAmt = k === "amount" && isMoney;
+    return '<div class="parsed-row"><span class="parsed-key">' + k + '</span><span class="parsed-val' + (isAmt ? ' amount' : '') + '">' + (isAmt ? Number(v).toLocaleString() + "원" : v) + '</span></div>';
   }).join("");
+
   document.getElementById("parsedRows").innerHTML = rows;
   document.getElementById("parsedCard").classList.remove("hidden");
 }
@@ -209,7 +238,11 @@ async function handleConfirm() {
       await sendToSheet(payload);
     }
     const text = document.getElementById("nlInput").value.trim();
-    addHistory((TYPE_META[currentParsed.type]?.icon || "") + " " + (currentParsed.content || currentParsed.name || text), currentParsed.amount);
+    const isMoney = AMOUNT_AS_MONEY.includes(currentParsed.type);
+    addHistory(
+      (TYPE_META[currentParsed.type]?.icon || "") + " " + (currentParsed.content || currentParsed.name || text),
+      isMoney ? currentParsed.amount : null
+    );
     document.getElementById("nlInput").value = "";
     resetCard();
     showMsg("✅ Google Sheets에 기록됐어요!", "success");
@@ -227,7 +260,7 @@ async function handleManual() {
   if (!content || !amount) { showMsg("내용과 금액을 입력해주세요.", "error"); return; }
   const payload = {
     type: "log",
-    date: document.getElementById("m_date").value,
+    date: getKstDateStr(),
     category: document.getElementById("m_category").value,
     subcategory: document.getElementById("m_subcategory").value,
     content: content,
@@ -263,7 +296,9 @@ function renderHistory() {
   if (history.length === 0) return;
   document.getElementById("historySection").classList.remove("hidden");
   document.getElementById("historyList").innerHTML = history.map(function(h) {
-    return '<div class="history-item"><div class="history-name">' + h.label + '</div><div>' + (h.amount ? '<div class="history-amount">' + Number(h.amount).toLocaleString() + '원</div>' : '') + '<div class="history-time">' + h.time + '</div></div></div>';
+    return '<div class="history-item"><div class="history-name">' + h.label + '</div><div>' +
+      (h.amount ? '<div class="history-amount">' + Number(h.amount).toLocaleString() + '원</div>' : '') +
+      '<div class="history-time">' + h.time + '</div></div></div>';
   }).join("");
 }
 
